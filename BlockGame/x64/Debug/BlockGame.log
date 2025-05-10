@@ -1,0 +1,3 @@
+﻿  main.cpp
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(220,19): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
+  BlockGame.vcxproj -> C:\Users\timon\Documents\GitHub\BlockGame\x64\Debug\BlockGame.exe
