@@ -14,16 +14,22 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
+#include "Cube.h"
+
+
 #include "PerlinNoise.h"
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraPos = glm::vec3(-10.f, 15.f, 15.f);
+glm::vec3 cameraFront = glm::normalize(glm::vec3(cos(glm::radians(0.0f)) * cos(glm::radians(0.0f)), sin(glm::radians(0.0f)), sin(glm::radians(0.0f)) * cos(glm::radians(0.0f))));
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+glm::mat4 view = glm::mat4(1.f);
 
 
-float yaw = -90.0f;
+bool mouseLocked = false;
+
+
+float yaw = 0.0f;
 float pitch = 0.0f;
 float fov = 45.f;
 
@@ -33,6 +39,52 @@ float movespeed = 20.f;
 
 float lastX = 400, lastY = 300;
 
+
+void generateNoiseMap(std::vector<int>& chunk,int chunksize,int chunkheight, int startX, int startZ) {
+
+	chunk.clear();
+	chunk.reserve(chunksize * chunksize);
+
+
+	int GRID_SIZE = 40;
+	float highest = 0.f;
+	float lowest = 0.f;
+
+	for (int x{ 0 }; x < chunksize; x++) {
+		for (int z{ 0 }; z < chunksize; z++) {
+
+			float val = 0.f;
+
+			float freq = 1.f;
+			float amp = 1.f;
+
+
+			for (int i{ 0 }; i < 4; i++) {
+				val += PerlinNoise::perlin(x * freq / GRID_SIZE, z * freq / GRID_SIZE) * amp;
+
+				freq *= 2.f;
+				amp /= 2.f;
+			}
+
+			val *= 1.2f;
+
+			val += 1.f;
+			val *= .5f;
+			// turn value from -1 to 1 into 0-1
+
+			val *= chunkheight;
+			chunk.push_back(val);
+
+			//std::cout << val << '\n';
+			if (val > highest)
+				highest = val;
+			if (val < lowest)
+				lowest = val;
+		}
+	}
+	std::cout << " HIGHEST VALUE = " << highest << '\n';
+	std::cout << " HIGHEST VALUE = " << lowest << '\n';
+}
 
 
 
@@ -47,6 +99,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+		mouseLocked = !mouseLocked;
+		if (mouseLocked) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+		else {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+	}
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -109,50 +170,48 @@ void processInput(GLFWwindow* window) {
 
 }
 
-float cubeVertices[] = {
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-	-0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-
-	 0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-	 // test
+std::vector<Vertex> cubeVertices = {
+	{ 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+	{ 0.5f, -0.5f, -0.5f,  1.0f, 0.0f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+	{-0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
+	{ 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
 	
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-						  		
-	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	{-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+	{ 0.5f, -0.5f,  0.5f,  1.0f, 0.0f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+	{-0.5f,  0.5f,  0.5f,  0.0f, 1.0f},
+	{-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+
+	{-0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+	{-0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+	{-0.5f, -0.5f,  0.5f,  1.0f, 0.0f},
+	{-0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+
+	{ 0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+	{ 0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+	{ 0.5f, -0.5f,  0.5f,  1.0f, 0.0f},
+	{ 0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+	{ 0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+	{ 0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+	{ 0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+	{-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+
+	{-0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+	{-0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+	{ 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+	{-0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
 	/*
 	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
@@ -170,17 +229,6 @@ float cubeVertices[] = {
 	*/
 };
 
-struct Vertex {
-	glm::fvec3 position;
-	GLfloat TexCoord[2];
-	Vertex(GLfloat x_, GLfloat y_,GLfloat z_, GLfloat t1, GLfloat t2) {
-		position.x = x_;
-		position.y = y_;
-		position.z = z_;
-		TexCoord[0] = t1;
-		TexCoord[1] = t2;
-	}
-};
 
 
 Vertex VERTICES[] = {		// textcoords
@@ -197,7 +245,7 @@ unsigned int indices[] = {
 };
 
 
-void ShowStatWindow() {
+void ShowStatWindow(GLFWwindow* window) {
 	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 650, main_viewport->WorkPos.y + 20), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
@@ -211,6 +259,25 @@ void ShowStatWindow() {
 	ImGui::DragFloat("yaw", &yaw, 1.f, -360.f, 360.f, "%.3f");
 	ImGui::DragFloat("pitch", &pitch, 1.f, -89.f, 89.f, "%.3f");
 	ImGui::DragFloat("fov", &fov, 1.f, 1.0f, 45.f, "%.3f");
+
+	static bool culling = true;
+	if (ImGui::Checkbox("culling", &culling)) {
+		if (culling) {
+			glEnable(GL_CULL_FACE);
+		}
+		else {
+			glDisable(GL_CULL_FACE);
+		}
+	}
+
+	if (ImGui::Checkbox("mouselocked", &mouseLocked)) {
+		if (mouseLocked) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+		else {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+	}
 }
 
 
@@ -257,6 +324,7 @@ int main() {
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(0);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		printf("Initializing GLAD failed\n");
@@ -300,7 +368,7 @@ int main() {
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * cubeVertices.size(), &cubeVertices[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
 	glEnableVertexAttribArray(0); 
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
@@ -328,7 +396,7 @@ int main() {
 	
 	int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("textures/grass.jpg", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("textures/dirt.png", &width, &height, &nrChannels, 0);
 	if (data) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -338,11 +406,20 @@ int main() {
 	}
 	stbi_image_free(data);
 
+	data = stbi_load("textures/dirt.png", &width, &height, &nrChannels, 0);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		std::cout << "FAILED to load texture \n";
+	}
+	stbi_image_free(data);
+
 
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	
 	//
 	// main loop
@@ -353,51 +430,88 @@ int main() {
 
 	srand(glfwGetTime());
 
-	glm::mat4 base = glm::mat4(1.0f);
-	std::vector<glm::mat4> chunk;
 
 
 
-	const int windowWidth = 192;
-	const int windowHeight = 108;
-	int GRID_SIZE = 40;
-	float highest = 0.f;
-	float lowest = 0.f;
-
-	for (int x{ 0 }; x < windowWidth; x++) {
-		for (int z{ 0 }; z < windowHeight; z++) {
-
-			float val = 0;
-
-			float freq = 1;
-			float amp = 1;
 
 
-			for (int i{ 0 }; i < 12; i++) {
-				val += PerlinNoise::perlin(x * freq / GRID_SIZE, z * freq / GRID_SIZE) * amp;
+	constexpr int chunksize =  256;
+	constexpr int chunkheight = 20;
 
-				freq *= 2.f;
-				amp /= 2.f;
+	std::vector<int> chunkheightvalues;
+	generateNoiseMap(chunkheightvalues, chunksize,chunkheight, 0, 0);
+
+	auto chunk = new Cube[chunksize][chunkheight][chunksize];
+	
+
+	// generate chunk 
+	for (int x{ 0 }; x < chunksize; x++) {
+		for (int y{ 0 }; y < chunkheight; y++) {
+			for (int z{ 0 }; z < chunksize; z++) {
+				if (y < chunkheightvalues[x * chunksize + z])
+					chunk[x][y][z].setId(1);
+
+				chunk[x][y][z].setPosition(x, y, z);
 			}
-
-			val *= 1.2;
-
-			val += 1.f;
-			val *= .5f;
-			// turn value from -1 to 1 into 0-1
-
-			val *= 10.f;
-			chunk.emplace_back(glm::translate(base, glm::vec3(x, (int)val, -z)));
-			
-			//std::cout << val << '\n';
-			if (val > highest)
-				highest = val;
-			if (val < lowest)
-				lowest = val;
 		}
 	}
-	std::cout << " HIGHEST VALUE = " << highest << '\n';
-	std::cout << " HIGHEST VALUE = " << lowest << '\n';
+	// generate visible vertices
+
+	std::vector<Vertex> visibleVertices;
+
+	for (int x{ 0 }; x < chunksize; x++) {
+		for (int y{ 0 }; y < chunkheight; y++) {
+			for (int z{ 0 }; z < chunksize; z++) {
+				Cube& cube = chunk[x][y][z];
+				if (cube.isAir())
+					continue;
+				// check all directions to see if we are next to air block
+				// if we are we need to draw that sprite
+				if (y + 1 == chunkheight) // always add blocks on the border of the chunk ?!?!?
+					cube.addTopVertexData(visibleVertices);
+				else if(chunk[x][y + 1][z].isAir()) {
+					cube.addTopVertexData(visibleVertices);
+				}
+				if (y == 0) {
+					cube.addBottomVertexData(visibleVertices);
+				}
+				else if (chunk[x][y - 1][z].isAir()) {
+					cube.addBottomVertexData(visibleVertices);
+				}
+
+				if (x == 0) { // left check
+					cube.addLeftVertexData(visibleVertices);
+				}
+				else if (chunk[x - 1][y][z].isAir()) {
+					cube.addLeftVertexData(visibleVertices);
+				}
+				if (x + 1 == chunksize) { // right check
+					cube.addRightVertexData(visibleVertices);
+				}
+				else if (chunk[x + 1][y][z].isAir()) {
+					cube.addRightVertexData(visibleVertices);
+				}
+				
+				if (z == 0) { // backwards check
+					cube.addBackwardVertexData(visibleVertices);
+				}
+				else if (chunk[x][y][z - 1].isAir()) {
+					cube.addBackwardVertexData(visibleVertices);
+				}
+				if (z + 1 == chunksize) { // forward check
+					cube.addForwardVertexData(visibleVertices);
+				}
+				else if (chunk[x][y][z + 1].isAir()) {
+					cube.addForwardVertexData(visibleVertices);
+				}
+			}
+		}
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * visibleVertices.size(), &visibleVertices[0], GL_STATIC_DRAW);
+
+	std::cout << "how many verts" << visibleVertices.size();
 
 
 
@@ -412,7 +526,7 @@ int main() {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ShowStatWindow();
+		ShowStatWindow(window);
 
 		static float lastFrame = 0.0f;
 		float currentFrame = glfwGetTime();
@@ -437,10 +551,13 @@ int main() {
 		glUniformMatrix4fv(projectionLoc,1, GL_FALSE, glm::value_ptr(proj));
 
 
-		for (glm::mat4& pos : chunk) {
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(pos));
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		glm::mat4 bruh = glm::mat4(1.f);
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(bruh));
+
+		glDrawArrays(GL_TRIANGLES, 0, visibleVertices.size());
+
+
+
 		glBindVertexArray(0);
 
 		ImGui::Render();
