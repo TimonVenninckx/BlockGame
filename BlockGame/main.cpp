@@ -14,16 +14,16 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
-#include "Cube.h"
+#include "World.h"
 
-
-#include "PerlinNoise.h"
+#include <thread>
 
 glm::vec3 cameraPos = glm::vec3(-10.f, 15.f, 15.f);
 glm::vec3 cameraFront = glm::normalize(glm::vec3(cos(glm::radians(0.0f)) * cos(glm::radians(0.0f)), sin(glm::radians(0.0f)), sin(glm::radians(0.0f)) * cos(glm::radians(0.0f))));
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 glm::mat4 view = glm::mat4(1.f);
+
 
 
 bool mouseLocked = false;
@@ -35,59 +35,19 @@ float fov = 45.f;
 
 
 float deltatime = 0.0f;
-float movespeed = 20.f;
+float movespeed = 200.f;
 
 float lastX = 400, lastY = 300;
 
+bool keeprendering = true;
 
-void generateNoiseMap(std::vector<int>& chunk,int chunksize,int chunkheight, int startX, int startZ) {
+World world;
 
-	chunk.clear();
-	chunk.reserve(chunksize * chunksize);
-
-
-	int GRID_SIZE = 40;
-	float highest = 0.f;
-	float lowest = 0.f;
-
-	for (int x{ 0 }; x < chunksize; x++) {
-		for (int z{ 0 }; z < chunksize; z++) {
-
-			float val = 0.f;
-
-			float freq = 1.f;
-			float amp = 1.f;
-
-
-			for (int i{ 0 }; i < 4; i++) {
-				val += PerlinNoise::perlin(x * freq / GRID_SIZE, z * freq / GRID_SIZE) * amp;
-
-				freq *= 2.f;
-				amp /= 2.f;
-			}
-
-			val *= 1.2f;
-
-			val += 1.f;
-			val *= .5f;
-			// turn value from -1 to 1 into 0-1
-
-			val *= chunkheight;
-			chunk.push_back(val);
-
-			//std::cout << val << '\n';
-			if (val > highest)
-				highest = val;
-			if (val < lowest)
-				lowest = val;
-		}
-	}
-	std::cout << " HIGHEST VALUE = " << highest << '\n';
-	std::cout << " HIGHEST VALUE = " << lowest << '\n';
+void paraleltest() {
+    while (keeprendering) {
+        world.loadNewChunks(cameraPos);
+    }
 }
-
-
-
 
 
 void glfw_error_callback(int error, const char* description)
@@ -124,14 +84,14 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	static bool firstmouse = true;
 
 	if (firstmouse) {
-		lastX = xpos;
-		lastY = ypos;
+		lastX = (float)xpos;
+		lastY = (float)ypos;
 		firstmouse = false;
 	}
 	float xoffset = xpos - lastX;
 	float yoffset = ypos - lastY;
-	lastX = xpos;
-	lastY = ypos;
+	lastX = (float)xpos;
+	lastY = (float)ypos;
 
 	const float sensitivity = 0.1f;
 	xoffset *= sensitivity;
@@ -152,6 +112,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	cameraFront = glm::normalize(direction);
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	glViewport(0, 0, width, height);
+}
+
 void processInput(GLFWwindow* window) {
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -159,9 +123,9 @@ void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		cameraPos -= movespeed * deltatime * cameraFront;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos -= movespeed * deltatime * glm::cross(cameraUp, cameraFront);
+		cameraPos -= movespeed * deltatime * glm::normalize(glm::cross(cameraUp, cameraFront));
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos += movespeed * deltatime * glm::cross(cameraUp, cameraFront);
+		cameraPos += movespeed * deltatime * glm::normalize(glm::cross(cameraUp, cameraFront));
 	// up movement
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		cameraPos -= movespeed * deltatime * cameraUp;
@@ -171,47 +135,47 @@ void processInput(GLFWwindow* window) {
 }
 
 std::vector<Vertex> cubeVertices = {
-	{ 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
-	{ 0.5f, -0.5f, -0.5f,  1.0f, 0.0f},
-	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
-	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
-	{-0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
-	{ 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+	{ 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.f},
+	{ 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.f},
+	{-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.f},
+	{ 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.f},
 	
-	{-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
-	{ 0.5f, -0.5f,  0.5f,  1.0f, 0.0f},
-	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
-	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
-	{-0.5f,  0.5f,  0.5f,  0.0f, 1.0f},
-	{-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
+	{-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.f},
+	{ 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.f},
+	{-0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.f},
+	{-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.f},
 
-	{-0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
-	{-0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
-	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
-	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
-	{-0.5f, -0.5f,  0.5f,  1.0f, 0.0f},
-	{-0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
+	{-0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.f},
+	{-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.f},
+	{-0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.f},
+	{-0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.f},
 
-	{ 0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
-	{ 0.5f,  0.5f, -0.5f,  0.0f, 1.0f},
-	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
-	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
-	{ 0.5f, -0.5f,  0.5f,  1.0f, 0.0f},
-	{ 0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+	{ 0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.f},
+	{ 0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.f},
+	{ 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.f},
+	{ 0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.f},
 
-	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
-	{ 0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
-	{ 0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
-	{ 0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
-	{-0.5f, -0.5f,  0.5f,  0.0f, 0.0f},
-	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.f},
+	{ 0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.f},
+	{ 0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.f},
+	{ 0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.f},
+	{-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.f},
+	{-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.f},
 
-	{-0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
-	{-0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
-	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
-	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f},
-	{ 0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
-	{-0.5f,  0.5f, -0.5f,  1.0f, 1.0f},
+	{-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.f},
+	{-0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.f},
+	{ 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.f},
+	{ 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.f},
+	{-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.f},
 	/*
 	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
@@ -232,10 +196,10 @@ std::vector<Vertex> cubeVertices = {
 
 
 Vertex VERTICES[] = {		// textcoords
-	Vertex( 0.5, 0.5f, 1.0f		,1.0f, 1.0f),
-	Vertex( 0.5,-0.5f, 1.0f		,1.0f, 0.0f),
-	Vertex(-0.5,-0.5f, 1.0f		,0.0f, 0.0f),
-	Vertex(-0.5, 0.5f, 1.0f		,0.0f, 1.0f)
+	Vertex( 0.5, 0.5f, 1.0f		,1.0f, 1.0f, 0.f),
+	Vertex( 0.5,-0.5f, 1.0f		,1.0f, 0.0f, 0.f),
+	Vertex(-0.5,-0.5f, 1.0f		,0.0f, 0.0f, 0.f),
+	Vertex(-0.5, 0.5f, 1.0f		,0.0f, 1.0f, 0.f)
 };
 
 
@@ -259,6 +223,8 @@ void ShowStatWindow(GLFWwindow* window) {
 	ImGui::DragFloat("yaw", &yaw, 1.f, -360.f, 360.f, "%.3f");
 	ImGui::DragFloat("pitch", &pitch, 1.f, -89.f, 89.f, "%.3f");
 	ImGui::DragFloat("fov", &fov, 1.f, 1.0f, 45.f, "%.3f");
+	ImGui::DragFloat("movespeed", &movespeed, 5.f, 20.f, 500.f, "%.3f");
+
 
 	static bool culling = true;
 	if (ImGui::Checkbox("culling", &culling)) {
@@ -301,6 +267,7 @@ ImGuiIO& startImgui(GLFWwindow* window) {
 
 
 int main() {
+
 	if (!glfwInit())
 	{
 		printf("GLFW Initialization failed\n");
@@ -309,7 +276,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	GLFWwindow* window = glfwCreateWindow(1080, 720, "CubeGame", NULL,
+	GLFWwindow* window = glfwCreateWindow(1920, 1080, "CubeGame", NULL,
 		NULL);
 	//glfwSetWindowPos(window, 2000, 200);
 
@@ -322,6 +289,7 @@ int main() {
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(0);
@@ -354,7 +322,7 @@ int main() {
 	view = glm::rotate(view, glm::radians(30.f), glm::vec3(1.0, 0.0, 0.0));
 	view = glm::translate(view, glm::vec3(25.0f, -20.0f, -20.0f));
 
-	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)scrWidth / (float)scrHeight, 0.1f, 500.0f);
+	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)scrWidth / (float)scrHeight, 0.1f, 5000.0f);
 
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -369,149 +337,98 @@ int main() {
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * cubeVertices.size(), &cubeVertices[0], GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
 	glEnableVertexAttribArray(0); 
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
-	// indices
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices, GL_STATIC_DRAW);
+	//// indices
+	//glGenBuffers(1, &EBO);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices, GL_STATIC_DRAW);
 	
 	
 	// 
 	// texture
 	// 
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	// minifying and magnifying
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	
-	int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(true);
+
+	GLuint texturetest;
+
+	GLsizei width = 16;
+	GLsizei height = 16;
+	GLsizei layercount = 3;
+	GLsizei nrChannels;
+
+
+
+	glGenTextures(1, &texturetest);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texturetest);
+	
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB, width, height, layercount, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	
+
+	// minifying and magnifying
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST); /// 
+	
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
 	unsigned char* data = stbi_load("textures/dirt.png", &width, &height, &nrChannels, 0);
 	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
 	}
 	else {
 		std::cout << "FAILED to load texture \n";
 	}
+
 	stbi_image_free(data);
 
-	data = stbi_load("textures/dirt.png", &width, &height, &nrChannels, 0);
+	data = stbi_load("textures/grass_block_side.png", &width, &height, &nrChannels, 0);
 	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 1, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
 	}
 	else {
 		std::cout << "FAILED to load texture \n";
 	}
+
 	stbi_image_free(data);
 
+	data = stbi_load("textures/grass_block_top_changed.png", &width, &height, &nrChannels, 0);
+	if (data) {
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 2, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+	}
+	else {
+		std::cout << "FAILED to load texture \n";
+	}
 
-	glEnable(GL_CULL_FACE);
+	stbi_image_free(data);
 
+	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
 	
 	//
 	// main loop
 	//
 
+	glEnable(GL_CULL_FACE);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glEnable(GL_DEPTH_TEST);
 
-	srand(glfwGetTime());
+	srand((unsigned int)glfwGetTime());
+
+    world.GenerateWorld(glfwGetTime());
+    
+    std::thread worker(paraleltest);
 
 
+    /*glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * world.getAllVertices().size(), &world.getAllVertices()[0], GL_STATIC_DRAW);
 
 
-
-
-	constexpr int chunksize =  256;
-	constexpr int chunkheight = 20;
-
-	std::vector<int> chunkheightvalues;
-	generateNoiseMap(chunkheightvalues, chunksize,chunkheight, 0, 0);
-
-	auto chunk = new Cube[chunksize][chunkheight][chunksize];
-	
-
-	// generate chunk 
-	for (int x{ 0 }; x < chunksize; x++) {
-		for (int y{ 0 }; y < chunkheight; y++) {
-			for (int z{ 0 }; z < chunksize; z++) {
-				if (y < chunkheightvalues[x * chunksize + z])
-					chunk[x][y][z].setId(1);
-
-				chunk[x][y][z].setPosition(x, y, z);
-			}
-		}
-	}
-	// generate visible vertices
-
-	std::vector<Vertex> visibleVertices;
-
-	for (int x{ 0 }; x < chunksize; x++) {
-		for (int y{ 0 }; y < chunkheight; y++) {
-			for (int z{ 0 }; z < chunksize; z++) {
-				Cube& cube = chunk[x][y][z];
-				if (cube.isAir())
-					continue;
-				// check all directions to see if we are next to air block
-				// if we are we need to draw that sprite
-				if (y + 1 == chunkheight) // always add blocks on the border of the chunk ?!?!?
-					cube.addTopVertexData(visibleVertices);
-				else if(chunk[x][y + 1][z].isAir()) {
-					cube.addTopVertexData(visibleVertices);
-				}
-				if (y == 0) {
-					cube.addBottomVertexData(visibleVertices);
-				}
-				else if (chunk[x][y - 1][z].isAir()) {
-					cube.addBottomVertexData(visibleVertices);
-				}
-
-				if (x == 0) { // left check
-					cube.addLeftVertexData(visibleVertices);
-				}
-				else if (chunk[x - 1][y][z].isAir()) {
-					cube.addLeftVertexData(visibleVertices);
-				}
-				if (x + 1 == chunksize) { // right check
-					cube.addRightVertexData(visibleVertices);
-				}
-				else if (chunk[x + 1][y][z].isAir()) {
-					cube.addRightVertexData(visibleVertices);
-				}
-				
-				if (z == 0) { // backwards check
-					cube.addBackwardVertexData(visibleVertices);
-				}
-				else if (chunk[x][y][z - 1].isAir()) {
-					cube.addBackwardVertexData(visibleVertices);
-				}
-				if (z + 1 == chunksize) { // forward check
-					cube.addForwardVertexData(visibleVertices);
-				}
-				else if (chunk[x][y][z + 1].isAir()) {
-					cube.addForwardVertexData(visibleVertices);
-				}
-			}
-		}
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * visibleVertices.size(), &visibleVertices[0], GL_STATIC_DRAW);
-
-	std::cout << "how many verts" << visibleVertices.size();
+    int verticesToDraw = world.getAllVertices().size();
+    world.getAllVertices().clear();*/
 
 
 
@@ -535,7 +452,7 @@ int main() {
 
 
 		Shader.use();
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texturetest);
 		glBindVertexArray(VAO);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -547,16 +464,15 @@ int main() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
 
-		proj = glm::perspective(glm::radians(fov), (float)scrWidth / (float)scrHeight, 0.1f, 1000.0f);
+		proj = glm::perspective(glm::radians(fov), (float)scrWidth / (float)scrHeight, 0.1f, 5000.0f);
 		glUniformMatrix4fv(projectionLoc,1, GL_FALSE, glm::value_ptr(proj));
 
 
 		glm::mat4 bruh = glm::mat4(1.f);
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(bruh));
 
-		glDrawArrays(GL_TRIANGLES, 0, visibleVertices.size());
 
-
+        world.render();
 
 		glBindVertexArray(0);
 
@@ -574,11 +490,48 @@ int main() {
 
 		glfwSwapBuffers(window);
 	}
+    keeprendering = false;
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 	glfwTerminate();
 
+    worker.join();
 	return 0;
 }
+
+
+/*
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	// minifying and magnifying
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data = stbi_load("textures/dirt.png", &width, &height, &nrChannels, 0);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		std::cout << "FAILED to load texture \n";
+	}
+	stbi_image_free(data);
+
+	data = stbi_load("textures/dirt.png", &width, &height, &nrChannels, 0);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		std::cout << "FAILED to load texture \n";
+	}
+	*/

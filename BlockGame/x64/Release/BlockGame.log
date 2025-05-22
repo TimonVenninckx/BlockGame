@@ -1,24 +1,14 @@
-﻿  main.cpp
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\Cube.h(3,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-  (compiling source file 'main.cpp')
-  
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(76,20): warning C4244: 'argument': conversion from 'float' to '_Ty', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(76,20): warning C4244:         with
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(76,20): warning C4244:         [
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(76,20): warning C4244:             _Ty=int
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(76,20): warning C4244:         ]
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(127,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(128,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(131,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(132,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(133,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(134,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(431,19): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(532,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(557,53): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+﻿  Chunk.cpp
+  Cube.cpp
+  main.cpp
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(83,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(84,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(473,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(498,55): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+  Vertex.cpp
   Generating code
-  4 of 2637 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    47 functions had inline decision re-evaluated but remain unchanged
+  258 of 2714 functions ( 9.5%) were compiled, the rest were copied from previous compilation.
+    78 functions were new in current compilation
+    91 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   BlockGame.vcxproj -> C:\Users\timon\Documents\GitHub\BlockGame\x64\Release\BlockGame.exe

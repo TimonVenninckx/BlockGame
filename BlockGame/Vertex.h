@@ -4,13 +4,14 @@
 
 struct Vertex {
 	glm::vec3 position;
-	GLfloat TexCoord[2];
-	Vertex(GLfloat x_, GLfloat y_, GLfloat z_, GLfloat t1, GLfloat t2) {
-		position.x = x_;
-		position.y = y_;
-		position.z = z_;
-		TexCoord[0] = t1;
-		TexCoord[1] = t2;
+	glm::vec3 TexCoord;
+	Vertex(GLfloat x_, GLfloat y_, GLfloat z_, GLfloat u, GLfloat v, GLfloat w) {
+	    position.x = x_;
+	    position.y = y_;
+	    position.z = z_;
+	    TexCoord.x = u;
+	    TexCoord.y = v;
+	    TexCoord.z = w;
 	}
 };
 

@@ -1,1 +1,4 @@
-﻿
+﻿  World.cpp
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\World.cpp(90,17): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\World.cpp(91,17): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  BlockGame.vcxproj -> C:\Users\timon\Documents\GitHub\BlockGame\x64\Debug\BlockGame.exe
