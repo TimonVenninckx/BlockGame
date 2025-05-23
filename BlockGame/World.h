@@ -9,17 +9,24 @@
 
 
 
-typedef std::tuple<int, int> ChunkPosition;
+
+typedef std::pair<int, int> ChunkPosition;
+
+
+inline ChunkPosition operator+(const ChunkPosition& lhs, const ChunkPosition& rhs) {
+    return ChunkPosition{ lhs.first + rhs.first, lhs.second + rhs.second };
+}
+
 
 class World
 {
 public:
 
     void test();
+    void updateChunkNeighbours(ChunkPosition pos);
 
     bool GenerateWorld(int seed);
 
-    std::vector<Vertex>& getAllVertices();
 
     void loadNewChunks(glm::vec3 playerposition);
 

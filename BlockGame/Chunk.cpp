@@ -64,7 +64,7 @@ float smoothstep(float edge0, float edge1, float x) {
 }
 
 
-void generateFastNoiseMap(const FastNoiseLite& noise, std::vector<int>& chunkheightvalues, int chunksize, int xoffset, int zoffset, float powerofnoise) {
+inline void generateFastNoiseMap(const FastNoiseLite& noise, std::vector<int>& chunkheightvalues, int chunksize, int xoffset, int zoffset, float powerofnoise) {
 
     
     int groundstart = 100;
@@ -102,8 +102,10 @@ void generateFastNoiseMap(const FastNoiseLite& noise, std::vector<int>& chunkhei
 
 
 
+
 void Chunk::generateChunk(const FastNoiseLite& noise, const FastNoiseLite& noise2, int _chunksize, int _chunkheight, int _xoffset, int _zoffset)
 {
+
     chunksize = _chunksize;
     chunkheight = _chunkheight;
 
@@ -116,22 +118,22 @@ void Chunk::generateChunk(const FastNoiseLite& noise, const FastNoiseLite& noise
     std::vector<int> chunkheightvalues(chunksize * chunksize,0);
     generateFastNoiseMap(noise, chunkheightvalues, chunksize, xoffset, zoffset, 0.7f);
     generateFastNoiseMap(noise2, chunkheightvalues, chunksize, xoffset, zoffset,0.3f);
+    cubes = std::vector<Cube>(chunksize * chunkheight * chunksize,0); // x,y,z
     
+
 
     // generate chunk 
     for (int x{ 0 }; x < chunksize; x++) {
         for (int y{ 0 }; y < chunkheight; y++) {
             for (int z{ 0 }; z < chunksize; z++) {
-                Cube cube;
-
+                //Cube& cube = cubes[(x * chunksize * chunkheight) + y * chunksize + z];
 
                 if (y < chunkheightvalues[x * chunksize + z])
-                    cube.setId(1);
+                    cubes[(x * chunksize * chunkheight) + y * chunksize + z].setId(1);
                 else if (y == chunkheightvalues[x * chunksize + z])
-                    cube.setId(2);
+                    cubes[(x * chunksize * chunkheight) + y * chunksize + z].setId(2);
 
                 //cube.setPosition(x + xoffset, y, z + zoffset);
-                this->cubes.push_back(cube);
             }
         }
     }
@@ -141,13 +143,22 @@ void Chunk::generateChunk(const FastNoiseLite& noise, const FastNoiseLite& noise
 
 void Chunk::generateVAO()
 {
-
-    //printf("WE HAVE %i vertices to render\n",visiblevertices.size());
-
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    vaoMade = true;
+}
+
+void Chunk::bindVerticesToVao()
+{
+    glBindVertexArray(vao);
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * visiblevertices.size(), &visiblevertices[0], GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
@@ -162,15 +173,19 @@ void Chunk::generateVAO()
     // stored on gpu
     amountOfVertices = visiblevertices.size();
     visiblevertices.clear();
+
+    needRebindVertices = false;
 }
+
 
 void Chunk::generateVertices()
 {
-    // bad
-    // bad
-    // bad
-    // bad
-
+    needRebindVertices = false; 
+    visiblevertices.clear();
+    // set to false so we don't rebind vertices while mid generation
+    // for example if we just generate vertice and neighbours get updated
+    // we would try to generate again
+    // 
     // very bad code tbh. will revisit when comparing walls to neighbouring chunks
 
     glm::ivec3 tempCubePos{};
@@ -202,26 +217,60 @@ void Chunk::generateVertices()
                 }
 
                 if (tempCubePos.x == 0) { // left check
-                    //cube.addLeftVertexData(visiblevertices, worldCubepos);
+                    if (neighbours.left) {
+                        if (neighbours.left->getBlockId({ chunksize-1,y,z }) == 0) { // if block of air(id = 0)
+                            cube.addLeftVertexData(visiblevertices, worldCubepos);
+                        }
+                    }
+                    else {
+                        cube.addLeftVertexData(visiblevertices, worldCubepos);
+                    }
                 }
                 else if (cubes[((tempCubePos.x - 1) * chunksize * chunkheight) + (tempCubePos.y * chunksize) + tempCubePos.z].isAir()) {
                     cube.addLeftVertexData(visiblevertices, worldCubepos);
                 }
+
+
                 if (tempCubePos.x + 1 == chunksize) { // right check
-                    //cube.addRightVertexData(visiblevertices, worldCubepos);
+                    if (neighbours.right) {
+                        if (neighbours.right->getBlockId({ 0,y,z }) == 0) { // if block of air(id = 0)
+                            cube.addRightVertexData(visiblevertices, worldCubepos);
+                        }
+                    }
+                    else {
+                        cube.addRightVertexData(visiblevertices, worldCubepos);
+                    }
                 }
                 else if (cubes[((tempCubePos.x + 1) * chunksize * chunkheight) + (tempCubePos.y * chunksize) + tempCubePos.z].isAir()) {
                     cube.addRightVertexData(visiblevertices, worldCubepos);
                 }
 
+
                 if (tempCubePos.z == 0) { // backwards check
-                    //cube.addBackwardVertexData(visiblevertices, worldCubepos);
+                    if (neighbours.back) {
+                        if (neighbours.back->getBlockId({ x,y,chunksize-1 }) == 0) { // if block of air(id = 0)
+                            cube.addBackwardVertexData(visiblevertices, worldCubepos);
+                        }
+                    }
+                    else {
+                        cube.addBackwardVertexData(visiblevertices, worldCubepos);
+                    }
                 }
                 else if (cubes[(tempCubePos.x * chunksize * chunkheight) + (tempCubePos.y * chunksize) + (tempCubePos.z - 1)].isAir()) {
                     cube.addBackwardVertexData(visiblevertices, worldCubepos);
                 }
+
+
+
                 if (tempCubePos.z + 1 == chunksize) { // forward check
-                    //cube.addForwardVertexData(visiblevertices, worldCubepos);
+                    if (neighbours.front) {
+                        if (neighbours.front->getBlockId({ x,y,0 }) == 0) { // if block of air(id = 0)
+                            cube.addForwardVertexData(visiblevertices, worldCubepos);
+                        }
+                    }
+                    else {
+                        cube.addForwardVertexData(visiblevertices, worldCubepos);
+                    }
                 }
                 else if (cubes[(tempCubePos.x * chunksize * chunkheight) + (tempCubePos.y * chunksize) + (tempCubePos.z + 1)].isAir()) {
                     cube.addForwardVertexData(visiblevertices, worldCubepos);
@@ -229,13 +278,12 @@ void Chunk::generateVertices()
             }
         }
     }
+    needRebindVertices = true;
 }
 
 void Chunk::render()
 {
-
-    //printf("i have %i vertices\n", amountOfVertices);
-
+    //printf("Amountofevertices:%i\n", amountOfVertices);
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, amountOfVertices);
     glBindVertexArray(0);
@@ -255,36 +303,76 @@ inline bool operator==(const ChunkNeighbors& lhs, const ChunkNeighbors& rhs) {
     return true;
 }
 
+// MAKE SURE TO UPDATE WHEN UNLOADING CHUNKS
 // THREADING :THUMBSUP:
 // ONLY CALL THIS ON MAIN THREAD PRETTY PLEASE
 void Chunk::setNeighbours(const ChunkNeighbors& _neighbours)
 {
     if (this->neighbours == _neighbours)
         return;
+    
+
+    this->neighbours = _neighbours;
 
     amountOfVertices = 0;
     generateVertices();
 
-    // rest vertices
+    //static int callers = 0;
+    //callers++;
+    //printf("Setting neighbours %i\n", callers);
+}
 
+void Chunk::notifyNeighbours()
+{
+    if (neighbours.front) {
+        neighbours.front->updateNeighbour(NeighbourDirection::BACK, this);
+    }
+    if (neighbours.back) {
+        neighbours.back->updateNeighbour(NeighbourDirection::FRONT, this);
+    }
+    if (neighbours.right) {
+        neighbours.right->updateNeighbour(NeighbourDirection::LEFT, this);
+    }
+    if (neighbours.left) {
+        neighbours.left->updateNeighbour(NeighbourDirection::RIGHT, this);
+    }
+}
 
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * visiblevertices.size(), &visiblevertices[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
+void Chunk::updateNeighbour(NeighbourDirection direction, Chunk* newNeighbour)
+{
+    switch (direction) {
+    case NeighbourDirection::FRONT:
+        if (neighbours.front == newNeighbour)
+            return;
+        neighbours.front = newNeighbour;
+        break;
+    case NeighbourDirection::BACK:
+        if (neighbours.back == newNeighbour)
+            return;
+        neighbours.back = newNeighbour;
+        break;
+    case NeighbourDirection::LEFT:
+        if (neighbours.left == newNeighbour)
+            return;
+        neighbours.left = newNeighbour;
+        break;
+    case NeighbourDirection::RIGHT:
+        if (neighbours.right == newNeighbour)
+            return;
+        neighbours.right = newNeighbour;
+        break;
+    }
+    //printf("Updating neighbours %i\n", (int)visiblevertices.size());
+    generateVertices();
+}
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glBindVertexArray(0);
-
-    // stored on gpu
-    amountOfVertices = visiblevertices.size();
-    visiblevertices.clear();
+int Chunk::getBlockId(const glm::ivec3& pos)
+{
+    if (cubes.empty()) {
+        printf("GetBlockId We have no cubes\n");
+        return 0;
+    }
+    return cubes[(pos.x * chunksize * chunkheight) + (pos.y * chunksize) + pos.z].getId();
 
 }
 

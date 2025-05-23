@@ -18,7 +18,7 @@
 
 #include <thread>
 
-glm::vec3 cameraPos = glm::vec3(-10.f, 15.f, 15.f);
+glm::vec3 cameraPos = glm::vec3(-10.f, 500.f, 15.f);
 glm::vec3 cameraFront = glm::normalize(glm::vec3(cos(glm::radians(0.0f)) * cos(glm::radians(0.0f)), sin(glm::radians(0.0f)), sin(glm::radians(0.0f)) * cos(glm::radians(0.0f))));
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -30,7 +30,7 @@ bool mouseLocked = false;
 
 
 float yaw = 0.0f;
-float pitch = 0.0f;
+float pitch = -89.f;
 float fov = 45.f;
 
 
@@ -418,17 +418,15 @@ int main() {
 
 	srand((unsigned int)glfwGetTime());
 
-    world.GenerateWorld(glfwGetTime());
+    int seed = 99;
+    world.GenerateWorld(seed);
     
+
+    world.test();
+
+    // turn world gen off for a sec
     std::thread worker(paraleltest);
 
-
-    /*glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * world.getAllVertices().size(), &world.getAllVertices()[0], GL_STATIC_DRAW);
-
-
-    int verticesToDraw = world.getAllVertices().size();
-    world.getAllVertices().clear();*/
 
 
 

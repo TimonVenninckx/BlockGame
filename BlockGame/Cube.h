@@ -24,6 +24,10 @@ public:
 		}
 	}
 
+    uint8_t getId() {
+        return id;
+    }
+
 	/*const glm::ivec3& getPosition() {
 		return position;
 	}
