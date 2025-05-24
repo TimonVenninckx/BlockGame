@@ -287,7 +287,7 @@ int main() {
 
 	GLsizei width = 16;
 	GLsizei height = 16;
-	GLsizei layercount = 3;
+	GLsizei layercount = 5;
 	GLsizei nrChannels;
 
 
@@ -332,6 +332,17 @@ int main() {
 	}
 
 	stbi_image_free(data);
+
+    data = stbi_load("texturepack/assets/minecraft/textures/block/stone_bricks.png", &width, &height, &nrChannels, 0); // stone
+    if (data) {
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 3, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+    }
+    else {
+        std::cout << "FAILED to load texture \n";
+    }
+    printf("nchannels:%i\n",nrChannels);
+
+    stbi_image_free(data);
 
 	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 

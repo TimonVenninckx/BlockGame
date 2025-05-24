@@ -35,9 +35,9 @@ glm::ivec3 RayCast::CheckForBlock(World & world) {
     //int Z = std::lround(m_StartPos.z) & world.ChunkSize;
 
     // localize x,y,z to in chunk coordinates
-    int X = std::lround(m_StartPos.x) % world.ChunkSize;
-    int Y = std::lround(m_StartPos.y);
-    int Z = std::lround(m_StartPos.z) % world.ChunkSize;
+    int X = std::lround(std::floor(m_StartPos.x)) % world.ChunkSize;
+    int Y = std::lround(std::floor(m_StartPos.y));
+    int Z = std::lround(std::floor(m_StartPos.z)) % world.ChunkSize;
 
     if (X < 0)
         X += world.ChunkSize;
@@ -47,7 +47,7 @@ glm::ivec3 RayCast::CheckForBlock(World & world) {
     printf("RayBlockStartingPosition: %i,%i,%i\n", X, Y, Z);
 
 
-    ChunkPosition currentChunk = { std::lround(std::floor(std::lround(m_StartPos.x) / (float)world.ChunkSize)), std::lround(std::floor(std::lround(m_StartPos.z) / (float)world.ChunkSize)) };
+    ChunkPosition currentChunk = { std::lround(std::floor(m_StartPos.x / (float)world.ChunkSize)), std::lround(std::floor(m_StartPos.z / (float)world.ChunkSize)) };
 
 
     int stepX = m_Direction.x >= 0 ? 1 : -1;
@@ -55,9 +55,9 @@ glm::ivec3 RayCast::CheckForBlock(World & world) {
     int stepZ = m_Direction.z >= 0 ? 1 : -1;
 
     // max raylength block + 1 in local values
-    int justOutX = std::lround(m_Direction.x * m_RayLength + std::fmod(m_StartPos.x, world.ChunkSize)) + stepX;
-    int justOutY = std::lround(m_Direction.y * m_RayLength + m_StartPos.y) + stepY;
-    int justOutZ = std::lround(m_Direction.z * m_RayLength + std::fmod(m_StartPos.z, world.ChunkSize)) + stepZ;
+    int justOutX = std::lround(std::floor(m_Direction.x * m_RayLength + std::fmod(m_StartPos.x, world.ChunkSize))) + stepX;
+    int justOutY = std::lround(std::floor(m_Direction.y * m_RayLength + m_StartPos.y)) + stepY;
+    int justOutZ = std::lround(std::floor(m_Direction.z * m_RayLength + std::fmod(m_StartPos.z, world.ChunkSize))) + stepZ;
 
     printf("Justoutx:%i\n", justOutX);
     printf("Justoutz:%i\n", justOutZ);
@@ -68,46 +68,31 @@ glm::ivec3 RayCast::CheckForBlock(World & world) {
     float invVY = m_Direction.y == 0 ? std::numeric_limits<double>::infinity() : 1.f / m_Direction.y;
     float invVZ = m_Direction.z == 0 ? std::numeric_limits<double>::infinity() : 1.f / m_Direction.z;
 
-    float tMaxX{};
-    float tMaxY{};
-    float tMaxZ{};
-
-
     float tDeltaX = std::abs(invVX);
     float tDeltaY = std::abs(invVY);
     float tDeltaZ = std::abs(invVZ);
 
-    if (stepX > 0) {
-        tMaxX = (1.f - std::fmod(m_StartPos.x, 1.f)) * tDeltaX;
-    }
-    else {
-        tMaxX = (1.f + std::fmod(m_StartPos.x, 1.f)) * tDeltaX;
-    }
 
-    if (stepY > 0) {
-        tMaxY = (1.f - std::fmod(m_StartPos.y, 1.f)) * tDeltaY;
-    }
-    else {
-        tMaxY = (1.f + std::fmod(m_StartPos.y, 1.f)) * tDeltaY;
-    }
-
-    if (stepZ > 0) {
-        tMaxZ = (1.f - std::fmod(m_StartPos.z, 1.f)) * tDeltaZ;
-    }
-    else {
-        tMaxZ = (1.f + std::fmod(m_StartPos.z, 1.f)) * tDeltaZ;
-    }
-     //= ((float)(X + 1) - m_StartPos.x) / m_Direction.x * m_RayLength;
-     //= ((float)(Y + 1) - m_StartPos.y) / m_Direction.y * m_RayLength;
-     //= ((float)(Z + 1) - m_StartPos.x) / m_Direction.z * m_RayLength;
-
-    
+    float voxelX = std::floor(m_StartPos.x);
+    float voxelY = std::floor(m_StartPos.y);
+    float voxelZ = std::floor(m_StartPos.z);
 
 
-        // value along ray that says we are in the next block
+    float tMaxX = (stepX > 0)
+        ? (voxelX + 1.0f - m_StartPos.x) * tDeltaX
+        : (m_StartPos.x - voxelX) * tDeltaX;
 
-    /*printf("StartPosition: %i,%i,%i\n", X, Y, Z);
-    printf("Tmax Position: %i,%i,%i\n", tMaxX, tMaxY, tMaxZ);*/
+
+    float tMaxY = (stepY > 0)
+        ? (voxelY + 1.0f - m_StartPos.y) * tDeltaY
+        : (m_StartPos.y - voxelY) * tDeltaY;
+
+
+    float tMaxZ = (stepZ > 0)
+        ? (voxelZ + 1.0f - m_StartPos.z) * tDeltaZ
+        : (m_StartPos.z - voxelZ) * tDeltaZ;
+
+
     
     
 

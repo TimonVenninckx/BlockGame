@@ -68,11 +68,15 @@ void Chunk::GenerateChunk(const FastNoiseLite& noise, const FastNoiseLite& noise
         for (int y{ 0 }; y < m_chunkheight; y++) {
             for (int z{ 0 }; z < m_chunksize; z++) {
                 //Cube& cube = cubes[(x * chunksize * chunkheight) + y * chunksize + z];
-
-                if (y < chunkheightvalues[x * m_chunksize + z])
+                if(y < (chunkheightvalues[x * m_chunksize + z] - 2 )){
+                    m_cubes[(x * m_chunksize * m_chunkheight) + y * m_chunksize + z].setId(3);
+                }
+                else if (y < chunkheightvalues[x * m_chunksize + z]) {
                     m_cubes[(x * m_chunksize * m_chunkheight) + y * m_chunksize + z].setId(1);
-                else if (y == chunkheightvalues[x * m_chunksize + z])
+                }
+                else if (y == chunkheightvalues[x * m_chunksize + z]) {
                     m_cubes[(x * m_chunksize * m_chunkheight) + y * m_chunksize + z].setId(2);
+                }
 
                 //cube.setPosition(x + xoffset, y, z + zoffset);
             }

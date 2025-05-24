@@ -1,5 +1,8 @@
-﻿  RayCast.cpp
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\RayCast.cpp(67,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\RayCast.cpp(68,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\RayCast.cpp(69,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+﻿  main.cpp
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(101,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(102,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(131,49): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(171,49): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(415,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(439,57): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
   BlockGame.vcxproj -> C:\Users\timon\Documents\GitHub\BlockGame\x64\Debug\BlockGame.exe
