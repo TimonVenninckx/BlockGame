@@ -1,3 +1,5 @@
-﻿  Chunk.cpp
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\Chunk.cpp(174,44): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+﻿  RayCast.cpp
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\RayCast.cpp(67,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\RayCast.cpp(68,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\RayCast.cpp(69,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   BlockGame.vcxproj -> C:\Users\timon\Documents\GitHub\BlockGame\x64\Debug\BlockGame.exe

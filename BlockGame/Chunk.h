@@ -7,11 +7,11 @@
 class Chunk;
 
 
-enum class NeighbourDirection {
-    FRONT,
-    LEFT,
-    RIGHT,
-    BACK
+enum ENeighbourDirection {
+    ENeighbourDirection_FRONT,
+    ENeighbourDirection_LEFT,
+    ENeighbourDirection_RIGHT,
+    ENeighbourDirection_BACK
 };
 
 struct ChunkNeighbors {
@@ -26,37 +26,42 @@ class Chunk
 public:
     
 
-    void generateChunk(const FastNoiseLite& noise, const FastNoiseLite& noise2, int _chunksize, int _chunkheight, int xoffset,int zoffset);
-    void bindVerticesToVao(); // has to be called on main thread;
-    void generateVAO();
+    void GenerateChunk(const FastNoiseLite& noise, const FastNoiseLite& noise2, int chunkSize, int chunkHeight, int xOffset,int zOffset);
+    void BindVerticesToVao(); // has to be called on main thread;
+    void GenerateVAO();
 
-    void generateVertices();
+    void GenerateVertices();
 
-    void render();
+    void Render();
 
-    void setNeighbours(const ChunkNeighbors& neighours);
-    void notifyNeighbours();
+    void SetNeighbours(const ChunkNeighbors& neighours);
+    void NotifyNeighbours();
 
-    void updateNeighbour(NeighbourDirection direction, Chunk* newNeighbour);
+    void UpdateNeighbour(ENeighbourDirection direction, Chunk* newNeighbour);
 
-    int getBlockId(const glm::ivec3& pos);
 
-    bool needRebindVertices = true;
-    bool vaoMade = false;
+    int GetBlockId(const glm::ivec3& pos);
+    void RemoveBlock(const glm::ivec3& pos);
+
+    bool NeedRebindVertices() const;
+    bool VaoMade() const;
+
 private:
 
 
+    bool m_needRebindVertices = true;
+    bool m_vaoMade = false;
 
-    GLuint vbo,vao;
-    int chunksize;
-    int chunkheight;
-    int xoffset;
-    int zoffset;
-    std::vector<Cube> cubes; // x,y,z
-    int amountOfVertices{};
-    std::vector<Vertex> visiblevertices;
+    GLuint m_vbo, m_vao;
+    int m_chunksize;
+    int m_chunkheight;
+    int m_xoffset;
+    int m_zoffset;
+    std::vector<Cube> m_cubes; // x,y,z
+    int m_amountOfVertices{};
+    std::vector<Vertex> m_visiblevertices;
 
-    ChunkNeighbors neighbours;
+    ChunkNeighbors m_neighbours;
 
 };
 

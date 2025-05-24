@@ -34,19 +34,19 @@ namespace detail
 	template<>
 	struct is_int<uint8>
 	{
-		enum test {value = ~0};
+		enum Test {value = ~0};
 	};
 
 	template<>
 	struct is_int<uint16>
 	{
-		enum test {value = ~0};
+		enum Test {value = ~0};
 	};
 
 	template<>
 	struct is_int<uint64>
 	{
-		enum test {value = ~0};
+		enum Test {value = ~0};
 	};
 }//namespace detail
 

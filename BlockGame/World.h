@@ -1,11 +1,10 @@
 #pragma once
 #include "Chunk.h"
-#include <map>
 #include <glm/vec2.hpp>
 #include <FastNoiseLite.h>
 #include <tuple>
 #include <atomic>
-
+#include <map>
 
 
 
@@ -21,27 +20,32 @@ inline ChunkPosition operator+(const ChunkPosition& lhs, const ChunkPosition& rh
 class World
 {
 public:
+    static const int ChunkSize;
+    static const int ChunkHeight;
 
-    void test();
-    void updateChunkNeighbours(ChunkPosition pos);
+
+    void Test();
+    void UpdateChunkNeighbours(ChunkPosition pos);
 
     bool GenerateWorld(int seed);
 
 
-    void loadNewChunks(glm::vec3 playerposition);
+    void LoadNewChunks(glm::vec3 playerPosition);
 
-    void render();
+    void Render();
     
+    
+    std::map<ChunkPosition, Chunk>& getChunks();
 
 private:
-    std::map<ChunkPosition, Chunk> chunks;
+    //std::map<ChunkPosition, Chunk> chunks;
+    std::map<ChunkPosition, Chunk> m_Chunks;
+    std::map<ChunkPosition,Chunk*> m_ChunksToRenderVao;
 
-    std::map<ChunkPosition,Chunk*> chunksTORenderVao;
-
-    FastNoiseLite noise;
-    FastNoiseLite noise1;
-    FastNoiseLite noise2;
-    std::vector<Vertex> allVertices;
+    FastNoiseLite m_Noise;
+    FastNoiseLite m_Noise1;
+    FastNoiseLite m_Noise2;
+    std::vector<Vertex> m_AllVertices;
 
 };
 

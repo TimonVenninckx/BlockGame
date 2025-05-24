@@ -6,6 +6,8 @@
 #include <sstream>
 #include <iostream>
 
+// learnopengl.com
+
 class Shader
 {
 public:

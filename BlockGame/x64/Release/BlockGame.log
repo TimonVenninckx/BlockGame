@@ -1,14 +1,10 @@
-﻿  Chunk.cpp
-  Cube.cpp
-  main.cpp
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(83,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(84,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(473,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\main.cpp(498,55): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-  Vertex.cpp
+﻿  RayCast.cpp
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\RayCast.cpp(67,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\RayCast.cpp(68,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\timon\Documents\GitHub\BlockGame\BlockGame\RayCast.cpp(69,17): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   Generating code
-  258 of 2714 functions ( 9.5%) were compiled, the rest were copied from previous compilation.
-    78 functions were new in current compilation
-    91 functions had inline decision re-evaluated but remain unchanged
+  3 of 2979 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    53 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   BlockGame.vcxproj -> C:\Users\timon\Documents\GitHub\BlockGame\x64\Release\BlockGame.exe

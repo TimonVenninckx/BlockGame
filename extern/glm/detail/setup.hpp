@@ -673,19 +673,19 @@ namespace detail
 	template<typename T>
 	struct is_int
 	{
-		enum test {value = 0};
+		enum Test {value = 0};
 	};
 
 	template<>
 	struct is_int<unsigned int>
 	{
-		enum test {value = ~0};
+		enum Test {value = ~0};
 	};
 
 	template<>
 	struct is_int<signed int>
 	{
-		enum test {value = ~0};
+		enum Test {value = ~0};
 	};
 }//namespace detail
 

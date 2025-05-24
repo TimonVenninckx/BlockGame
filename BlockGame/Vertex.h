@@ -3,15 +3,20 @@
 #include <glad/glad.h>
 
 struct Vertex {
-	glm::vec3 position;
+	glm::vec3 Position;
 	glm::vec3 TexCoord;
-	Vertex(GLfloat x_, GLfloat y_, GLfloat z_, GLfloat u, GLfloat v, GLfloat w) {
-	    position.x = x_;
-	    position.y = y_;
-	    position.z = z_;
-	    TexCoord.x = u;
-	    TexCoord.y = v;
-	    TexCoord.z = w;
-	}
+    glm::vec3 Normal;
+    Vertex(GLfloat x, GLfloat y, GLfloat z, GLfloat u, GLfloat v, GLfloat w, glm::vec3 normal)
+        : Position{ x,y,z }
+        , TexCoord{ u,v,w }
+        , Normal{ normal }
+    {}
+
+    Vertex(glm::vec3 position, glm::vec3 texCoord, glm::vec3 normal)
+        : Position{ position }
+        , TexCoord{ texCoord }
+        , Normal{ normal }
+    {
+    }
 };
 

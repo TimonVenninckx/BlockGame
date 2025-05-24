@@ -153,7 +153,7 @@
     <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PerlinNoise.cpp" />
+    <ClCompile Include="RayCast.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
@@ -167,7 +167,7 @@
     <ClInclude Include="Cube.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
-    <ClInclude Include="PerlinNoise.h" />
+    <ClInclude Include="RayCast.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="World.h" />

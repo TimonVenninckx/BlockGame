@@ -1,58 +1,12 @@
 #include "Chunk.h"
-#include "PerlinNoise.h"
 #include <iostream>    
 
 
 
-void generateNoiseMap(std::vector<int>& chunk, int chunksize, int chunkheight, int startX, int startZ) {
 
-    chunk.clear();
-    chunk.reserve(chunksize * chunksize);
-
-
-    int GRID_SIZE = 200;
-    float highest = 0.f;
-    float lowest = 0.f;
-
-    for (int x{ 0 }; x < chunksize; x++) {
-        for (int z{ 0 }; z < chunksize; z++) {
-
-            float val = 0.f;
-
-            float freq = 1.f;
-            float amp = 1.f;
-
-
-            for (int i{ 0 }; i < 4; i++) {
-                val += PerlinNoise::perlin((x + startX) * freq / GRID_SIZE, (z + startZ) * freq / GRID_SIZE) * amp;
-
-                freq *= 2.f;
-                amp /= 2.f;
-            }
-
-            val *= 1.2f;
-
-            val += 1.f;
-            val *= .5f;
-            // turn value from -1 to 1 into 0-1
-
-            val *= chunkheight;
-            chunk.push_back((int)val);
-
-            //std::cout << val << '\n';
-            if (val > highest)
-                highest = val;
-            if (val < lowest)
-                lowest = val;
-        }
-    }
-}
-
-
-
-float clamp(float x, float lowerlimit = 0.0f, float upperlimit = 1.0f) {
-    if (x < lowerlimit) return lowerlimit;
-    if (x > upperlimit) return upperlimit;
+float clamp(float x, float lowerLimit = 0.0f, float upperLimit = 1.0f) {
+    if (x < lowerLimit) return lowerLimit;
+    if (x > upperLimit) return upperLimit;
     return x;
 }
 
@@ -64,18 +18,18 @@ float smoothstep(float edge0, float edge1, float x) {
 }
 
 
-inline void generateFastNoiseMap(const FastNoiseLite& noise, std::vector<int>& chunkheightvalues, int chunksize, int xoffset, int zoffset, float powerofnoise) {
+inline void generateFastNoiseMap(const FastNoiseLite& noise, std::vector<int>& chunkHeightValues, int chunkSize, int xOffset, int zOffset, float powerOfNoise) {
 
     
     int groundstart = 100;
-    int highestground = 170;
+    int highestground = 150;
     int groundheight = highestground - groundstart;
 
-    for (int x{ 0 }; x < chunksize; x++) {
-        for (int z{ 0 }; z < chunksize; z++) {
+    for (int x{ 0 }; x < chunkSize; x++) {
+        for (int z{ 0 }; z < chunkSize; z++) {
 
 
-            float val = noise.GetNoise((float)(x + xoffset), (float)(z + zoffset));
+            float val = noise.GetNoise((float)(x + xOffset), (float)(z + zOffset));
 
             val += 1.f;
             val *= .5f;
@@ -83,18 +37,7 @@ inline void generateFastNoiseMap(const FastNoiseLite& noise, std::vector<int>& c
             val *= groundheight;
             val += groundstart;
         
-
-
-            /* 
-            float noise2val = noise2.GetNoise((float)(x + xoffset), (float)(z + zoffset));
-            noise2val += 1.f;
-            noise2val *= .5f;
-            noise2val *= chunksize;
-
-            val *= 0.8f;
-            val += 0.2f * noise2val;
-            */
-            chunkheightvalues[chunksize * x + z] += (int)(val * powerofnoise);
+            chunkHeightValues[chunkSize * x + z] += (int)(val * powerOfNoise);
         }
     }
 
@@ -103,35 +46,33 @@ inline void generateFastNoiseMap(const FastNoiseLite& noise, std::vector<int>& c
 
 
 
-void Chunk::generateChunk(const FastNoiseLite& noise, const FastNoiseLite& noise2, int _chunksize, int _chunkheight, int _xoffset, int _zoffset)
+void Chunk::GenerateChunk(const FastNoiseLite& noise, const FastNoiseLite& noise2, int chunkSize, int chunkHeight, int xOffset, int zOffset)
 {
 
-    chunksize = _chunksize;
-    chunkheight = _chunkheight;
-
-    chunkheight = 256;
+    m_chunksize = chunkSize;
+    m_chunkheight = chunkHeight;
 
 
-    xoffset = _xoffset;
-    zoffset = _zoffset;
+    m_xoffset = xOffset;
+    m_zoffset = zOffset;
 
-    std::vector<int> chunkheightvalues(chunksize * chunksize,0);
-    generateFastNoiseMap(noise, chunkheightvalues, chunksize, xoffset, zoffset, 0.7f);
-    generateFastNoiseMap(noise2, chunkheightvalues, chunksize, xoffset, zoffset,0.3f);
-    cubes = std::vector<Cube>(chunksize * chunkheight * chunksize,0); // x,y,z
+    std::vector<int> chunkheightvalues(m_chunksize * m_chunksize, 0);
+    generateFastNoiseMap(noise, chunkheightvalues, m_chunksize, m_xoffset, m_zoffset, 0.8f);
+    generateFastNoiseMap(noise2, chunkheightvalues, m_chunksize, m_xoffset, m_zoffset, 0.2f);
+    m_cubes = std::vector<Cube>(m_chunksize * m_chunkheight * m_chunksize,0); // x,y,z
     
 
 
     // generate chunk 
-    for (int x{ 0 }; x < chunksize; x++) {
-        for (int y{ 0 }; y < chunkheight; y++) {
-            for (int z{ 0 }; z < chunksize; z++) {
+    for (int x{ 0 }; x < m_chunksize; x++) {
+        for (int y{ 0 }; y < m_chunkheight; y++) {
+            for (int z{ 0 }; z < m_chunksize; z++) {
                 //Cube& cube = cubes[(x * chunksize * chunkheight) + y * chunksize + z];
 
-                if (y < chunkheightvalues[x * chunksize + z])
-                    cubes[(x * chunksize * chunkheight) + y * chunksize + z].setId(1);
-                else if (y == chunkheightvalues[x * chunksize + z])
-                    cubes[(x * chunksize * chunkheight) + y * chunksize + z].setId(2);
+                if (y < chunkheightvalues[x * m_chunksize + z])
+                    m_cubes[(x * m_chunksize * m_chunkheight) + y * m_chunksize + z].setId(1);
+                else if (y == chunkheightvalues[x * m_chunksize + z])
+                    m_cubes[(x * m_chunksize * m_chunkheight) + y * m_chunksize + z].setId(2);
 
                 //cube.setPosition(x + xoffset, y, z + zoffset);
             }
@@ -141,47 +82,45 @@ void Chunk::generateChunk(const FastNoiseLite& noise, const FastNoiseLite& noise
 
 }
 
-void Chunk::generateVAO()
+void Chunk::GenerateVAO()
 {
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glGenBuffers(1, &m_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    vaoMade = true;
+    m_vaoMade = true;
 }
 
-void Chunk::bindVerticesToVao()
+void Chunk::BindVerticesToVao()
 {
-    glBindVertexArray(vao);
+    glBindVertexArray(m_vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * visiblevertices.size(), &visiblevertices[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_visiblevertices.size(), &m_visiblevertices[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 
     // stored on gpu
-    amountOfVertices = visiblevertices.size();
-    visiblevertices.clear();
+    m_amountOfVertices = m_visiblevertices.size();
+    m_visiblevertices.clear();
 
-    needRebindVertices = false;
+    m_needRebindVertices = false;
 }
 
 
-void Chunk::generateVertices()
+void Chunk::GenerateVertices()
 {
-    needRebindVertices = false; 
-    visiblevertices.clear();
+    m_needRebindVertices = false;
+    m_visiblevertices.clear();
     // set to false so we don't rebind vertices while mid generation
     // for example if we just generate vertice and neighbours get updated
     // we would try to generate again
@@ -190,102 +129,103 @@ void Chunk::generateVertices()
 
     glm::ivec3 tempCubePos{};
     glm::ivec3 worldCubepos{};
-    for (int x{ 0 }; x < chunksize; x++) {
-        for (int y{ 0 }; y < chunkheight; y++) {
-            for (int z{ 0 }; z < chunksize; z++) {
-                Cube& cube = this->cubes[(x * chunksize * chunkheight) + (y * chunksize) + z];
+    for (int x{ 0 }; x < m_chunksize; x++) {
+        for (int y{ 0 }; y < m_chunkheight; y++) {
+            for (int z{ 0 }; z < m_chunksize; z++) {
+                int currentIndex = (x * m_chunksize * m_chunkheight) + (y * m_chunksize) + z;
+                Cube& cube = m_cubes[currentIndex];
                 if (cube.isAir())
                     continue;
                 tempCubePos.x = x;
                 tempCubePos.y = y;
                 tempCubePos.z = z;
-                worldCubepos.x = x + xoffset;
+                worldCubepos.x = x + m_xoffset;
                 worldCubepos.y = y;
-                worldCubepos.z = z + zoffset;
+                worldCubepos.z = z + m_zoffset;
                 // check all directions to see if we are next to air block
                 // if we are we need to draw that sprite
-                if (tempCubePos.y + 1 == chunkheight) // always add blocks on the border of the chunk ?!?!?
-                    cube.addTopVertexData(visiblevertices, worldCubepos);
-                else if (cubes[(tempCubePos.x * chunksize * chunkheight) + ((tempCubePos.y + 1) * chunksize) + tempCubePos.z].isAir()) {
-                    cube.addTopVertexData(visiblevertices, worldCubepos);
+                if (tempCubePos.y + 1 == m_chunkheight) // always add blocks on the border of the chunk ?!?!?
+                    cube.addTopVertexData(m_visiblevertices, worldCubepos);
+                else if (m_cubes[currentIndex + 1 * m_chunksize].isAir()) {
+                    cube.addTopVertexData(m_visiblevertices, worldCubepos);
                 }
                 if (tempCubePos.y == 0) {
                     //cube.addBottomVertexData(visiblevertices, worldCubepos);
                 }
-                else if (cubes[(tempCubePos.x * chunksize * chunkheight) + ((tempCubePos.y - 1) * chunksize) + tempCubePos.z].isAir()) {
-                    cube.addBottomVertexData(visiblevertices, worldCubepos);
+                else if (m_cubes[currentIndex - 1 * m_chunksize].isAir()) { // accesing y
+                    cube.addBottomVertexData(m_visiblevertices, worldCubepos);
                 }
 
                 if (tempCubePos.x == 0) { // left check
-                    if (neighbours.left) {
-                        if (neighbours.left->getBlockId({ chunksize-1,y,z }) == 0) { // if block of air(id = 0)
-                            cube.addLeftVertexData(visiblevertices, worldCubepos);
+                    if (m_neighbours.left) {
+                        if (m_neighbours.left->GetBlockId({ m_chunksize-1,y,z }) == 0) { // if block of air(id = 0)
+                            cube.addLeftVertexData(m_visiblevertices, worldCubepos);
                         }
                     }
                     else {
-                        cube.addLeftVertexData(visiblevertices, worldCubepos);
+                        cube.addLeftVertexData(m_visiblevertices, worldCubepos);
                     }
                 }
-                else if (cubes[((tempCubePos.x - 1) * chunksize * chunkheight) + (tempCubePos.y * chunksize) + tempCubePos.z].isAir()) {
-                    cube.addLeftVertexData(visiblevertices, worldCubepos);
+                else if (m_cubes[currentIndex - 1 * m_chunksize * m_chunkheight].isAir()) {
+                    cube.addLeftVertexData(m_visiblevertices, worldCubepos);
                 }
 
 
-                if (tempCubePos.x + 1 == chunksize) { // right check
-                    if (neighbours.right) {
-                        if (neighbours.right->getBlockId({ 0,y,z }) == 0) { // if block of air(id = 0)
-                            cube.addRightVertexData(visiblevertices, worldCubepos);
+                if (tempCubePos.x + 1 == m_chunksize) { // right check
+                    if (m_neighbours.right) {
+                        if (m_neighbours.right->GetBlockId({ 0,y,z }) == 0) { // if block of air(id = 0)
+                            cube.addRightVertexData(m_visiblevertices, worldCubepos);
                         }
                     }
                     else {
-                        cube.addRightVertexData(visiblevertices, worldCubepos);
+                        cube.addRightVertexData(m_visiblevertices, worldCubepos);
                     }
                 }
-                else if (cubes[((tempCubePos.x + 1) * chunksize * chunkheight) + (tempCubePos.y * chunksize) + tempCubePos.z].isAir()) {
-                    cube.addRightVertexData(visiblevertices, worldCubepos);
+                else if (m_cubes[currentIndex + 1 * m_chunksize * m_chunkheight].isAir()) {
+                    cube.addRightVertexData(m_visiblevertices, worldCubepos);
                 }
 
 
                 if (tempCubePos.z == 0) { // backwards check
-                    if (neighbours.back) {
-                        if (neighbours.back->getBlockId({ x,y,chunksize-1 }) == 0) { // if block of air(id = 0)
-                            cube.addBackwardVertexData(visiblevertices, worldCubepos);
+                    if (m_neighbours.back) {
+                        if (m_neighbours.back->GetBlockId({ x,y,m_chunksize-1 }) == 0) { // if block of air(id = 0)
+                            cube.addBackwardVertexData(m_visiblevertices, worldCubepos);
                         }
                     }
                     else {
-                        cube.addBackwardVertexData(visiblevertices, worldCubepos);
+                        cube.addBackwardVertexData(m_visiblevertices, worldCubepos);
                     }
                 }
-                else if (cubes[(tempCubePos.x * chunksize * chunkheight) + (tempCubePos.y * chunksize) + (tempCubePos.z - 1)].isAir()) {
-                    cube.addBackwardVertexData(visiblevertices, worldCubepos);
+                else if (m_cubes[currentIndex - 1].isAir()) {
+                    cube.addBackwardVertexData(m_visiblevertices, worldCubepos);
                 }
 
 
 
-                if (tempCubePos.z + 1 == chunksize) { // forward check
-                    if (neighbours.front) {
-                        if (neighbours.front->getBlockId({ x,y,0 }) == 0) { // if block of air(id = 0)
-                            cube.addForwardVertexData(visiblevertices, worldCubepos);
+                if (tempCubePos.z + 1 == m_chunksize) { // forward check
+                    if (m_neighbours.front) {
+                        if (m_neighbours.front->GetBlockId({ x,y,0 }) == 0) { // if block of air(id = 0)
+                            cube.addForwardVertexData(m_visiblevertices, worldCubepos);
                         }
                     }
                     else {
-                        cube.addForwardVertexData(visiblevertices, worldCubepos);
+                        cube.addForwardVertexData(m_visiblevertices, worldCubepos);
                     }
                 }
-                else if (cubes[(tempCubePos.x * chunksize * chunkheight) + (tempCubePos.y * chunksize) + (tempCubePos.z + 1)].isAir()) {
-                    cube.addForwardVertexData(visiblevertices, worldCubepos);
+                else if (m_cubes[currentIndex + 1].isAir()) {
+                    cube.addForwardVertexData(m_visiblevertices, worldCubepos);
                 }
             }
         }
     }
-    needRebindVertices = true;
+    m_needRebindVertices = true;
 }
 
-void Chunk::render()
+void Chunk::Render()
 {
     //printf("Amountofevertices:%i\n", amountOfVertices);
-    glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, amountOfVertices);
+    glBindVertexArray(m_vao);
+    glDrawArrays(GL_TRIANGLES, 0, m_amountOfVertices);
     glBindVertexArray(0);
 
 }
@@ -306,74 +246,108 @@ inline bool operator==(const ChunkNeighbors& lhs, const ChunkNeighbors& rhs) {
 // MAKE SURE TO UPDATE WHEN UNLOADING CHUNKS
 // THREADING :THUMBSUP:
 // ONLY CALL THIS ON MAIN THREAD PRETTY PLEASE
-void Chunk::setNeighbours(const ChunkNeighbors& _neighbours)
+void Chunk::SetNeighbours(const ChunkNeighbors& neighBours)
 {
-    if (this->neighbours == _neighbours)
+    if (m_neighbours == neighBours)
         return;
     
 
-    this->neighbours = _neighbours;
+    m_neighbours = neighBours;
 
-    amountOfVertices = 0;
-    generateVertices();
+    m_amountOfVertices = 0;
+    GenerateVertices();
 
     //static int callers = 0;
     //callers++;
     //printf("Setting neighbours %i\n", callers);
 }
 
-void Chunk::notifyNeighbours()
+void Chunk::NotifyNeighbours()
 {
-    if (neighbours.front) {
-        neighbours.front->updateNeighbour(NeighbourDirection::BACK, this);
+    if (m_neighbours.front) {
+        m_neighbours.front->UpdateNeighbour(ENeighbourDirection_BACK, this);
     }
-    if (neighbours.back) {
-        neighbours.back->updateNeighbour(NeighbourDirection::FRONT, this);
+    if (m_neighbours.back) {
+        m_neighbours.back->UpdateNeighbour(ENeighbourDirection_FRONT, this);
     }
-    if (neighbours.right) {
-        neighbours.right->updateNeighbour(NeighbourDirection::LEFT, this);
+    if (m_neighbours.right) {
+        m_neighbours.right->UpdateNeighbour(ENeighbourDirection_LEFT, this);
     }
-    if (neighbours.left) {
-        neighbours.left->updateNeighbour(NeighbourDirection::RIGHT, this);
+    if (m_neighbours.left) {
+        m_neighbours.left->UpdateNeighbour(ENeighbourDirection_RIGHT, this);
     }
 }
 
-void Chunk::updateNeighbour(NeighbourDirection direction, Chunk* newNeighbour)
+void Chunk::UpdateNeighbour(ENeighbourDirection direction, Chunk* newNeighbour)
 {
     switch (direction) {
-    case NeighbourDirection::FRONT:
-        if (neighbours.front == newNeighbour)
+    case ENeighbourDirection_FRONT:
+        if (m_neighbours.front == newNeighbour)
             return;
-        neighbours.front = newNeighbour;
+        m_neighbours.front = newNeighbour;
         break;
-    case NeighbourDirection::BACK:
-        if (neighbours.back == newNeighbour)
+    case ENeighbourDirection_BACK:
+        if (m_neighbours.back == newNeighbour)
             return;
-        neighbours.back = newNeighbour;
+        m_neighbours.back = newNeighbour;
         break;
-    case NeighbourDirection::LEFT:
-        if (neighbours.left == newNeighbour)
+    case ENeighbourDirection_LEFT:
+        if (m_neighbours.left == newNeighbour)
             return;
-        neighbours.left = newNeighbour;
+        m_neighbours.left = newNeighbour;
         break;
-    case NeighbourDirection::RIGHT:
-        if (neighbours.right == newNeighbour)
+    case ENeighbourDirection_RIGHT:
+        if (m_neighbours.right == newNeighbour)
             return;
-        neighbours.right = newNeighbour;
+        m_neighbours.right = newNeighbour;
         break;
     }
     //printf("Updating neighbours %i\n", (int)visiblevertices.size());
-    generateVertices();
+    GenerateVertices();
 }
 
-int Chunk::getBlockId(const glm::ivec3& pos)
+int Chunk::GetBlockId(const glm::ivec3& pos)
 {
-    if (cubes.empty()) {
+    if (m_cubes.empty()) {
         printf("GetBlockId We have no cubes\n");
         return 0;
     }
-    return cubes[(pos.x * chunksize * chunkheight) + (pos.y * chunksize) + pos.z].getId();
+    return m_cubes[(pos.x * m_chunksize * m_chunkheight) + (pos.y * m_chunksize) + pos.z].getId();
 
+}
+
+void Chunk::RemoveBlock(const glm::ivec3& pos)
+{
+    if (m_cubes.empty()) {
+        printf("GetBlockId We have no cubes\n");
+        return ;
+    }
+    m_cubes[(pos.x * m_chunksize * m_chunkheight) + (pos.y * m_chunksize) + pos.z].setId(0);
+    GenerateVertices();
+
+    
+    if (pos.z == 0                      && m_neighbours.back) {
+        m_neighbours.back->GenerateVertices();
+    }
+    else if (pos.z == m_chunksize - 1   && m_neighbours.front) {
+        m_neighbours.front->GenerateVertices();
+    }
+    if (pos.x == 0                      && m_neighbours.left) {
+        m_neighbours.left->GenerateVertices();
+    }
+    else if (pos.x == m_chunksize - 1   && m_neighbours.right) {
+        m_neighbours.right->GenerateVertices();
+    }
+}
+
+bool Chunk::NeedRebindVertices() const
+{
+    return m_needRebindVertices;
+}
+
+bool Chunk::VaoMade() const
+{
+    return m_vaoMade;
 }
 
 

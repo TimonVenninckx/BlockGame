@@ -27,20 +27,6 @@ public:
     uint8_t getId() {
         return id;
     }
-
-	/*const glm::ivec3& getPosition() {
-		return position;
-	}
-	glm::vec3 getFPosition() {
-		return position;
-	}
-
-	void setPosition(int x, int y, int z) {
-		position.x = x;
-		position.y = y;
-		position.z = z;
-	}*/
-
 	bool isAir() {
 		return id == 0;
 	}
@@ -49,90 +35,12 @@ public:
 	// will later change all of these to emplace_back()
 	//
 	
-	void addTopVertexData(std::vector<Vertex>& list, glm::vec3 position) {
-		Vertex corner1( 0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 1.f, 1.f, topTextureId);
-		Vertex corner2(-0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 0.f, 1.f, topTextureId);
-		Vertex corner3(-0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 0.f, 0.f, topTextureId);
-		Vertex corner4( 0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 1.f, 0.f, topTextureId);
-
-
-		list.push_back(corner1);
-		list.push_back(corner2);
-		list.push_back(corner3);
-		list.push_back(corner3);
-		list.push_back(corner4);
-		list.push_back(corner1);
-	}
-	void addBottomVertexData(std::vector<Vertex>& list, glm::vec3 position) {
-		Vertex corner1( 0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 1.f, 1.f, topTextureId);
-		Vertex corner2(-0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 0.f, 1.f, topTextureId);
-		Vertex corner3(-0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 0.f, 0.f, topTextureId);
-		Vertex corner4( 0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 1.f, 0.f, topTextureId);
-
-		// flip around the order to make it counter clockwise;
-		// remeber -z is forward;
-		list.push_back(corner3);
-		list.push_back(corner2);
-		list.push_back(corner1);
-		list.push_back(corner1);
-		list.push_back(corner4);
-		list.push_back(corner3);
-	}
-	void addLeftVertexData(std::vector<Vertex>& list, glm::vec3 position) {
-		Vertex corner1(-0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 1.f, 1.f, sideTextureId);
-		Vertex corner2(-0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 0.f, 1.f, sideTextureId);
-		Vertex corner3(-0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 0.f, 0.f, sideTextureId);
-		Vertex corner4(-0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 1.f, 0.f, sideTextureId);
-
-		list.push_back(corner1);
-		list.push_back(corner2);
-		list.push_back(corner3);
-		list.push_back(corner3);
-		list.push_back(corner4);
-		list.push_back(corner1);
-	}
-
-	void addRightVertexData(std::vector<Vertex>& list, glm::vec3 position) {
-		Vertex corner1(0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 1.f, 1.f, sideTextureId);
-		Vertex corner2(0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 0.f, 1.f, sideTextureId);
-		Vertex corner3(0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 0.f, 0.f, sideTextureId);
-		Vertex corner4(0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 1.f, 0.f, sideTextureId);
-
-		list.push_back(corner1);
-		list.push_back(corner2);
-		list.push_back(corner3);
-		list.push_back(corner3);
-		list.push_back(corner4);
-		list.push_back(corner1);
-	}
-
-	void addForwardVertexData(std::vector<Vertex>& list, glm::vec3 position) {
-		Vertex corner1( 0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 1.f, 1.f, sideTextureId);
-		Vertex corner2(-0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 0.f, 1.f, sideTextureId);
-		Vertex corner3(-0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 0.f, 0.f, sideTextureId);
-		Vertex corner4( 0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 1.f, 0.f, sideTextureId);
-
-		list.push_back(corner1);
-		list.push_back(corner2);
-		list.push_back(corner3);
-		list.push_back(corner3);
-		list.push_back(corner4);
-		list.push_back(corner1);
-	}
-
-	void addBackwardVertexData(std::vector<Vertex>& list, glm::vec3 position) {
-		Vertex corner1(-0.5f + position.x, 0.5f + position.y, -0.5f + position.z, 1.f, 1.f, sideTextureId);
-		Vertex corner2( 0.5f + position.x, 0.5f + position.y, -0.5f + position.z, 0.f, 1.f, sideTextureId);
-		Vertex corner3( 0.5f + position.x,-0.5f + position.y, -0.5f + position.z, 0.f, 0.f, sideTextureId);
-		Vertex corner4(-0.5f + position.x,-0.5f + position.y, -0.5f + position.z, 1.f, 0.f, sideTextureId);
-
-		list.push_back(corner1);
-		list.push_back(corner2);
-		list.push_back(corner3);
-		list.push_back(corner3);
-		list.push_back(corner4);
-		list.push_back(corner1);
-	}
+    void addTopVertexData(std::vector<Vertex>& list, glm::vec3 position);
+    void addBottomVertexData(std::vector<Vertex>& list, glm::vec3 position);
+    void addLeftVertexData(std::vector<Vertex>& list, glm::vec3 position);
+    void addRightVertexData(std::vector<Vertex>& list, glm::vec3 position);
+    void addForwardVertexData(std::vector<Vertex>& list, glm::vec3 position);
+    void addBackwardVertexData(std::vector<Vertex>& list, glm::vec3 position);
 
 
 private:
@@ -142,4 +50,91 @@ private:
     uint8_t sideTextureId{ 0 };
     
 };
+
+
+
+inline void Cube::addTopVertexData(std::vector<Vertex>& list, glm::vec3 position) {
+    const Vertex corner1( 0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 1.f, 1.f, topTextureId, glm::vec3(0.f, 1.f,0.f));
+    const Vertex corner2(-0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 0.f, 1.f, topTextureId, glm::vec3(0.f, 1.f,0.f));
+    const Vertex corner3(-0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 0.f, 0.f, topTextureId, glm::vec3(0.f, 1.f,0.f));
+    const Vertex corner4( 0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 1.f, 0.f, topTextureId, glm::vec3(0.f, 1.f,0.f));
+
+
+    list.push_back(corner1);
+    list.push_back(corner2);
+    list.push_back(corner3);
+    list.push_back(corner3);
+    list.push_back(corner4);
+    list.push_back(corner1);
+}
+inline void Cube::addBottomVertexData(std::vector<Vertex>& list, glm::vec3 position) {
+    const Vertex corner1( 0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 1.f, 1.f, topTextureId, glm::vec3(0.f,-1.f,0.f));
+    const Vertex corner2(-0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 0.f, 1.f, topTextureId, glm::vec3(0.f,-1.f,0.f));
+    const Vertex corner3(-0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 0.f, 0.f, topTextureId, glm::vec3(0.f,-1.f,0.f));
+    const Vertex corner4( 0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 1.f, 0.f, topTextureId, glm::vec3(0.f,-1.f,0.f));
+
+    // flip around the order to make it counter clockwise;
+    // remeber -z is forward;
+    list.push_back(corner3);
+    list.push_back(corner2);
+    list.push_back(corner1);
+    list.push_back(corner1);
+    list.push_back(corner4);
+    list.push_back(corner3);
+}
+inline void Cube::addLeftVertexData(std::vector<Vertex>& list, glm::vec3 position) {
+    const Vertex corner1(-0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 1.f, 1.f, sideTextureId, glm::vec3(-0.5f, 0.f, 0.f));
+    const Vertex corner2(-0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 0.f, 1.f, sideTextureId, glm::vec3(-0.5f, 0.f, 0.f));
+    const Vertex corner3(-0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 0.f, 0.f, sideTextureId, glm::vec3(-0.5f, 0.f, 0.f));
+    const Vertex corner4(-0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 1.f, 0.f, sideTextureId, glm::vec3(-0.5f, 0.f, 0.f));
+
+    list.push_back(corner1);
+    list.push_back(corner2);
+    list.push_back(corner3);
+    list.push_back(corner3);
+    list.push_back(corner4);
+    list.push_back(corner1);
+}
+
+inline void Cube::addRightVertexData(std::vector<Vertex>& list, glm::vec3 position) {
+    const Vertex corner1(0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 1.f, 1.f, sideTextureId, glm::vec3(0.5f, 0.f, 0.f));
+    const Vertex corner2(0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 0.f, 1.f, sideTextureId, glm::vec3(0.5f, 0.f, 0.f));
+    const Vertex corner3(0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 0.f, 0.f, sideTextureId, glm::vec3(0.5f, 0.f, 0.f));
+    const Vertex corner4(0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 1.f, 0.f, sideTextureId, glm::vec3(0.5f, 0.f, 0.f));
+
+    list.push_back(corner1);
+    list.push_back(corner2);
+    list.push_back(corner3);
+    list.push_back(corner3);
+    list.push_back(corner4);
+    list.push_back(corner1);
+}
+
+inline void Cube::addForwardVertexData(std::vector<Vertex>& list, glm::vec3 position) {
+    const Vertex corner1( 0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 1.f, 1.f, sideTextureId, glm::vec3(0.f, 0.f, 0.5f));
+    const Vertex corner2(-0.5f + position.x, 0.5f + position.y, 0.5f + position.z, 0.f, 1.f, sideTextureId, glm::vec3(0.f, 0.f, 0.5f));
+    const Vertex corner3(-0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 0.f, 0.f, sideTextureId, glm::vec3(0.f, 0.f, 0.5f));
+    const Vertex corner4( 0.5f + position.x,-0.5f + position.y, 0.5f + position.z, 1.f, 0.f, sideTextureId, glm::vec3(0.f, 0.f, 0.5f));
+
+    list.push_back(corner1);
+    list.push_back(corner2);
+    list.push_back(corner3);
+    list.push_back(corner3);
+    list.push_back(corner4);
+    list.push_back(corner1);
+}
+
+inline void Cube::addBackwardVertexData(std::vector<Vertex>& list, glm::vec3 position) {
+    const Vertex corner1(-0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 1.f, 1.f, sideTextureId, glm::vec3(0.f, 0.f,-0.5f));
+    const Vertex corner2( 0.5f + position.x, 0.5f + position.y,-0.5f + position.z, 0.f, 1.f, sideTextureId, glm::vec3(0.f, 0.f,-0.5f));
+    const Vertex corner3( 0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 0.f, 0.f, sideTextureId, glm::vec3(0.f, 0.f,-0.5f));
+    const Vertex corner4(-0.5f + position.x,-0.5f + position.y,-0.5f + position.z, 1.f, 0.f, sideTextureId, glm::vec3(0.f, 0.f,-0.5f));
+
+    list.push_back(corner1);
+    list.push_back(corner2);
+    list.push_back(corner3);
+    list.push_back(corner3);
+    list.push_back(corner4);
+    list.push_back(corner1);
+}
 
